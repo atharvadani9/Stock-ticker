@@ -1,8 +1,10 @@
 import AddIcon from "@mui/icons-material/Add"
 import CloseIcon from "@mui/icons-material/Close"
+import PlayArrowIcon from "@mui/icons-material/PlayArrow"
 import {
   Box,
   Button,
+  Divider,
   IconButton,
   Paper,
   Table,
@@ -20,7 +22,6 @@ import type { Ticker } from "../types"
 import { AiCell } from "./AiCell"
 import { ColumnHeader } from "./ColumnHeader"
 import { TickerCell } from "./TickerCell"
-import { Toolbar } from "./Toolbar"
 
 export function StockTable() {
   const {
@@ -55,15 +56,14 @@ export function StockTable() {
   const usedTickers = new Set(table.rows.map(r => r.ticker)) as Set<Ticker>
 
   return (
-    <>
-      <Toolbar isRunning={isRunning} onRun={handleRun} />
-      <TableContainer component={Paper}>
+    <Paper elevation={1} sx={{ borderRadius: 2, overflow: "hidden" }}>
+      <TableContainer>
         <Table size="small">
           <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Ticker</TableCell>
+            <TableRow sx={{ bgcolor: "#f0f4f8" }}>
+              <TableCell sx={{ fontWeight: 700, borderBottom: "2px solid #e0e7ef" }}>Ticker</TableCell>
               {table.columns.map(col => (
-                <TableCell key={col.id}>
+                <TableCell key={col.id} sx={{ borderBottom: "2px solid #e0e7ef" }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <ColumnHeader key={col.id} column={col} onChange={updatePrompt} />
                     <Tooltip title="Remove">
@@ -74,7 +74,7 @@ export function StockTable() {
                   </Box>
                 </TableCell>
               ))}
-              <TableCell padding="none">
+              <TableCell padding="none" sx={{ borderBottom: "2px solid #e0e7ef" }}>
                 <Tooltip title="Add Column">
                   <IconButton size="small" onClick={addColumn}>
                     <AddIcon fontSize="small" />
@@ -85,8 +85,8 @@ export function StockTable() {
           </TableHead>
           <TableBody>
             {table.rows.map(row => (
-              <TableRow key={row.id}>
-                <TableCell>
+              <TableRow key={row.id} sx={{ verticalAlign: "top" }}>
+                <TableCell sx={{ pt: 1.5 }}>
                   <TickerCell
                     rowId={row.id}
                     ticker={row.ticker}
@@ -95,11 +95,11 @@ export function StockTable() {
                   />
                 </TableCell>
                 {table.columns.map(col => (
-                  <TableCell key={col.id}>
+                  <TableCell key={col.id} sx={{ pt: 1.5 }}>
                     <AiCell cell={getCell(row.id, col.id)} />
                   </TableCell>
                 ))}
-                <TableCell padding="none">
+                <TableCell padding="none" sx={{ pt: 1.5 }}>
                   <Tooltip title="Remove">
                     <IconButton size="small" onClick={() => deleteRow(row.id)}>
                       <CloseIcon fontSize="small" />
@@ -110,12 +110,7 @@ export function StockTable() {
             ))}
             <TableRow>
               <TableCell colSpan={table.columns.length + 2} sx={{ borderBottom: "none" }}>
-                <Button
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={addRow}
-                  sx={{ color: "text.secondary" }}
-                >
+                <Button size="small" startIcon={<AddIcon />} onClick={addRow} sx={{ color: "text.secondary" }}>
                   Add Row
                 </Button>
               </TableCell>
@@ -123,6 +118,18 @@ export function StockTable() {
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+      <Divider />
+      <Box sx={{ display: "flex", justifyContent: "flex-end", px: 2, py: 1.5 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<PlayArrowIcon />}
+          onClick={handleRun}
+          disabled={isRunning}
+        >
+          {isRunning ? "Running…" : "Run"}
+        </Button>
+      </Box>
+    </Paper>
   )
 }

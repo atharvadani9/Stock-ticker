@@ -12,6 +12,9 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: 15,
+    body2: { fontSize: '0.9rem' },
+    caption: { fontSize: '0.85rem' },
   },
   components: {
     MuiTableCell: {
