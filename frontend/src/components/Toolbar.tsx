@@ -1,15 +1,12 @@
-import AddIcon from "@mui/icons-material/Add";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { Box, Button } from "@mui/material";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow"
+import { Box, Button } from "@mui/material"
 
 interface Props {
-  isRunning: boolean;
-  onRun: () => void;
-  onAddRow: () => void;
-  onAddColumn: () => void;
+  isRunning: boolean
+  onRun: () => void
 }
 
-export function Toolbar({ isRunning, onRun, onAddRow, onAddColumn }: Props) {
+export function Toolbar({ isRunning, onRun }: Props) {
   return (
     <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
       <Button
@@ -21,12 +18,6 @@ export function Toolbar({ isRunning, onRun, onAddRow, onAddColumn }: Props) {
       >
         {isRunning ? "Running…" : "Run"}
       </Button>
-      <Button variant="outlined" startIcon={<AddIcon />} onClick={onAddRow}>
-        {"Add Row"}
-      </Button>
-      <Button variant="outlined" startIcon={<AddIcon />} onClick={onAddColumn}>
-        {"Add Column"}
-      </Button>
     </Box>
-  );
+  )
 }

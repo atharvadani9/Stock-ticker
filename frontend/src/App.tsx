@@ -1,15 +1,14 @@
-import { Container, Typography } from "@mui/material";
-import { StockTable } from "./components/StockTable";
+import { Container, Box } from "@mui/material"
+import { StockTable } from "./components/StockTable"
 
 function App() {
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
-        {"Stock Ticker AI Table"}
-      </Typography>
-      <StockTable />
-    </Container>
-  );
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 5 }}>
+      <Container maxWidth="xl">
+        <StockTable />
+      </Container>
+    </Box>
+  )
 }
 
-export default App;
+export default App
