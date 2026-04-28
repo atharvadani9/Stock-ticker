@@ -22,8 +22,8 @@ A single-page web app that lets users build a table of stock tickers with AI-pow
 ### Backend
 ```bash
 cd backend
-export ANTHROPIC_API_KEY="your_key_here"   # omit to use mock
-go run .                                    # serves on :8080
+echo 'ANTHROPIC_API_KEY=your_key_here' > .env   # create env file with your key
+go run .                                          # serves on :8080
 ```
 
 ### Frontend
