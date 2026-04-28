@@ -2,10 +2,10 @@ package queue
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"sync"
-	"time"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/atharvadani9/stock-ticker/backend/models"
 	"github.com/google/uuid"
 )
@@ -36,25 +36,28 @@ func GetTask(id string) (models.TaskStatus, bool) {
 }
 
 func Worker(ctx context.Context) {
+	client := anthropic.NewClient()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case t := <-taskCh:
-			time.Sleep(2 * time.Second)
-			result := fmt.Sprintf("Mock response for prompt: \"%s\"", truncate(t.prompt, 60))
-			results.Store(t.id, models.TaskStatus{
-				TaskID: t.id,
-				Status: "done",
-				Result: &result,
+			msg, err := client.Messages.New(ctx, anthropic.MessageNewParams{
+				Model:     anthropic.ModelClaudeHaiku4_5,
+				MaxTokens: 256,
+				System: []anthropic.TextBlockParam{
+					{Text: "You are a financial data assistant. Answer questions about stocks and companies concisely — 1-2 sentences max, no markdown, no bullet points, no caveats. Give a direct factual answer only."},
+				},
+				Messages: []anthropic.MessageParam{anthropic.NewUserMessage(anthropic.NewTextBlock(t.prompt))},
 			})
+			if err != nil {
+				errMsg := err.Error()
+				results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "error", Result: &errMsg})
+				continue
+			}
+			log.Printf("task %s: input=%d output=%d tokens", t.id[:8], msg.Usage.InputTokens, msg.Usage.OutputTokens)
+			result := msg.Content[0].Text
+			results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "done", Result: &result})
 		}
 	}
-}
-
-func truncate(s string, n int) string {
-	if len(s) <= n {
-		return s
-	}
-	return s[:n] + "..."
 }
