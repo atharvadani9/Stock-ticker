@@ -80,8 +80,11 @@ Column prompts are kept in local React state as the user types. They are only pe
 ### Queue back-pressure
 The backend LLM queue channel is buffered to 100. Tasks that arrive while the worker is busy are queued and processed in order without dropping requests.
 
-### Concurrent polling
-Each cell independently polls `/llm/async/poll/:task_id` every 1500ms. Cells update as they resolve — fast tasks appear immediately without waiting for slow ones.
+### Concurrent polling with exponential backoff
+Each cell independently polls `/llm/async/poll/:task_id`. Poll intervals use exponential backoff — starting at 1s, doubling each miss, capping at 8s. This avoids hammering the backend during slow LLM calls while staying responsive for fast ones. Cells update as they resolve — fast tasks appear immediately without waiting for slow ones.
+
+### Automatic retry on LLM error
+If a task returns `"error"`, the cell silently re-submits a new LLM task and polls the fresh `task_id` — up to 3 retries. Only if all 4 attempts fail does the cell show an error. Each retry resets the backoff to 1s. This handles transient failures (rate limits, timeouts) that are common with real LLM APIs.
 
 ---
 
