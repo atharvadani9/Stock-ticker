@@ -18,7 +18,7 @@ function needsRun(
   cellStatus: CellValue["status"],
   prev: RunSnapshot | null,
 ): boolean {
-  if (cellStatus === "idle") return true
+  if (cellStatus === "idle" || cellStatus === "error") return true
   if (!prev) return true
 
   const prevRow = prev.rows.find(r => r.id === rowId)
