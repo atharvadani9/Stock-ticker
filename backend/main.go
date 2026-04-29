@@ -7,11 +7,9 @@ import (
 	"github.com/atharvadani9/stock-ticker/backend/queue"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
 	ctx := context.Background()
 	go queue.Worker(ctx)
 

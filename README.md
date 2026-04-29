@@ -25,11 +25,10 @@ cd backend
 go run .    # serves on :8080, uses mock LLM (2s delay, canned responses)
 ```
 
-To use the real Anthropic API instead of the mock, create a `.env` file in the `backend/` directory:
+To use the real Anthropic API instead of the mock, set the environment variable and swap the mock worker for the real SDK call in `backend/queue/llm.go`:
 ```bash
-echo 'ANTHROPIC_API_KEY=your_key_here' > .env
+export ANTHROPIC_API_KEY=your_key_here
 ```
-Then swap the mock worker for the real SDK call in `backend/queue/llm.go`.
 
 ### Frontend
 ```bash
