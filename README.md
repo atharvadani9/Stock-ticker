@@ -57,7 +57,7 @@ npm run dev    # serves on :5173, proxies /table and /llm to :8080
 - **Ticker column** — dropdown per row with 10 fixed tickers (TSLA, NVDA, AAPL, GOOGL, MSFT, AMZN, META, NFLX, AMD, INTC)
 - **AI columns** — each column has a user-defined prompt in the header; cells are populated on Run
 - **Add/remove rows and columns** — inline buttons in the table
-- **Async LLM execution** — all cells run concurrently via `Promise.all`; each cell polls independently and updates as it resolves
+- **Async LLM execution** — clicking Run fans out all (ticker × prompt) cells concurrently via `Promise.all` on the frontend; each cell independently submits a task and polls for its result. On the backend, each task is processed in its own goroutine so LLM calls run in parallel — all cells complete in ~the same time regardless of table size
 - **Per-cell loading state** — spinner while pending, result text when done, red text on error
 - **Mock backend** — 2s simulated delay with canned responses; swap to real Claude by editing `queue/llm.go` only
 
