@@ -15,7 +15,10 @@ func main() {
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:5173"},
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "http://localhost:5173" ||
+				len(origin) > 14 && origin[len(origin)-14:] == ".up.railway.app"
+		},
 		AllowMethods: []string{"GET", "PUT", "POST"},
 		AllowHeaders: []string{"Content-Type"},
 	}))
