@@ -2,6 +2,8 @@
 
 A single-page web app that lets users build a table of stock tickers with AI-powered columns. Each column has a user-defined natural language prompt; clicking **Run** generates answers for every (ticker × prompt) cell using Claude via async LLM calls with polling.
 
+**Live demo:** https://stock-ticker-wine.vercel.app/
+
 ---
 
 ## Tech Stack
