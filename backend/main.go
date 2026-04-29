@@ -17,7 +17,8 @@ func main() {
 	r.Use(cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
 			return origin == "http://localhost:5173" ||
-				len(origin) > 14 && origin[len(origin)-14:] == ".up.railway.app"
+				len(origin) > 14 && origin[len(origin)-14:] == ".up.railway.app" ||
+				len(origin) > 11 && origin[len(origin)-11:] == ".vercel.app"
 		},
 		AllowMethods: []string{"GET", "PUT", "POST"},
 		AllowHeaders: []string{"Content-Type"},
