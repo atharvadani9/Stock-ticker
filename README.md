@@ -107,3 +107,15 @@ The LLM swap is a one-function change in `queue/llm.go`. Building mock-first let
 
 ### Why no external state library?
 The state shape is simple: a flat `TableState` with rows, columns, and a `Record<string, CellValue>` for cells. `useState` + `useCallback` is sufficient; Redux or Zustand would add complexity without benefit here.
+
+### Why async queue + polling instead of streaming?
+Streaming requires a persistent connection per cell. With an N×M table that means N×M open connections simultaneously. A queue decouples submission from completion — each cell submits instantly and gets a `task_id`, then polls independently. This scales better and is simpler to reason about.
+
+### Why a goroutine per task instead of a single worker?
+A single worker processes tasks serially — 9 cells would take 27s (9×3s) instead of 3s. Spawning a goroutine per task lets all LLM calls run in parallel. Goroutines are cheap (~2KB each) so this is safe at demo scale. For production with a real API, a worker pool would cap concurrent calls to avoid rate limits.
+
+### Why exponential backoff + retry?
+They solve different problems. Backoff reduces wasted poll requests while waiting for a slow LLM response. Retry re-submits a fresh task when the LLM actually returns an error — re-polling the same `task_id` would just keep getting the same error. Together they make the system resilient to both latency and transient failures.
+
+### Why min 1 row and 1 column?
+An empty table has no meaningful state to run against. Preventing deletion of the last row/column avoids an edge case where Run is clicked on an empty table, and keeps the UI from reaching an unrecoverable state without a page refresh.
