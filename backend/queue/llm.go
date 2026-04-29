@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -43,6 +44,11 @@ func Worker(ctx context.Context) {
 		case t := <-taskCh:
 			go func(t task) {
 				time.Sleep(2 * time.Second)
+				if rand.Float32() < 0.2 {
+					errMsg := "mock error: simulated LLM failure"
+					results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "error", Result: &errMsg})
+					return
+				}
 				result := fmt.Sprintf("Mock response for prompt: \"%s\"", truncate(t.prompt, 60))
 				results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "done", Result: &result})
 			}(t)
