@@ -100,7 +100,7 @@ If a task returns `"error"`, the cell silently re-submits a new LLM task and pol
 The table state (rows, columns, cells) is small and always replaced atomically. This keeps the backend stateless and simple — no partial-update endpoints to maintain, no merge conflicts.
 
 ### Why Go for the backend?
-Goroutines make the async queue trivial — a buffered channel and a single `go Worker()` call handles concurrent LLM tasks cleanly without a separate job queue system.
+Goroutines make the async queue trivial — a buffered channel dispatches tasks to a coordinator goroutine, which spawns a new goroutine per task so all LLM calls run in parallel. No separate job queue system (Redis, Celery) needed.
 
 ### Why mock-first?
 The LLM swap is a one-function change in `queue/llm.go`. Building mock-first let us validate the entire UI/polling flow without needing an API key, and keeps the demo cost-free.
