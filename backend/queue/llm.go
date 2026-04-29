@@ -41,9 +41,11 @@ func Worker(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case t := <-taskCh:
-			time.Sleep(2 * time.Second)
-			result := fmt.Sprintf("Mock response for prompt: \"%s\"", truncate(t.prompt, 60))
-			results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "done", Result: &result})
+			go func(t task) {
+				time.Sleep(2 * time.Second)
+				result := fmt.Sprintf("Mock response for prompt: \"%s\"", truncate(t.prompt, 60))
+				results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "done", Result: &result})
+			}(t)
 		}
 	}
 }
