@@ -54,6 +54,7 @@ export function StockTable() {
   if (loading) return null
 
   const usedTickers = new Set(table.rows.map(r => r.ticker)) as Set<Ticker>
+  const hasEmptyColumn = table.columns.some(col => !col.prompt.trim())
 
   return (
     <Paper elevation={1} sx={{ borderRadius: 2, overflow: "hidden" }}>
@@ -66,11 +67,13 @@ export function StockTable() {
                 <TableCell key={col.id} sx={{ borderBottom: "2px solid #e0e7ef" }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <ColumnHeader key={col.id} column={col} onChange={updatePrompt} />
-                    <Tooltip title="Remove">
-                      <IconButton size="small" onClick={() => deleteColumn(col.id)}>
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    {table.columns.length > 1 && (
+                      <Tooltip title="Remove">
+                        <IconButton size="small" onClick={() => deleteColumn(col.id)}>
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 </TableCell>
               ))}
@@ -100,11 +103,13 @@ export function StockTable() {
                   </TableCell>
                 ))}
                 <TableCell padding="none" sx={{ pt: 1.5 }}>
-                  <Tooltip title="Remove">
-                    <IconButton size="small" onClick={() => deleteRow(row.id)}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                  {table.rows.length > 1 && (
+                    <Tooltip title="Remove">
+                      <IconButton size="small" onClick={() => deleteRow(row.id)}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -125,7 +130,7 @@ export function StockTable() {
           color="primary"
           startIcon={<PlayArrowIcon />}
           onClick={handleRun}
-          disabled={isRunning}
+          disabled={isRunning || hasEmptyColumn}
         >
           {isRunning ? "Running…" : "Run"}
         </Button>
