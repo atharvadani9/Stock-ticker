@@ -22,9 +22,14 @@ A single-page web app that lets users build a table of stock tickers with AI-pow
 ### Backend
 ```bash
 cd backend
-echo 'ANTHROPIC_API_KEY=your_key_here' > .env   # create env file with your key
-go run .                                          # serves on :8080
+go run .    # serves on :8080, uses mock LLM (2s delay, canned responses)
 ```
+
+To use the real Anthropic API instead of the mock, create a `.env` file in the `backend/` directory:
+```bash
+echo 'ANTHROPIC_API_KEY=your_key_here' > .env
+```
+Then swap the mock worker for the real SDK call in `backend/queue/llm.go`.
 
 ### Frontend
 ```bash
