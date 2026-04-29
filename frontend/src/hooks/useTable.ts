@@ -83,9 +83,33 @@ export function useTable() {
     sync({ ...table, columns: table.columns.filter(c => c.id !== colId), cells })
   }, [table, sync])
 
+  const reorderRows = useCallback((activeId: string, overId: string) => {
+    setTable(prev => {
+      const oldIndex = prev.rows.findIndex(r => r.id === activeId)
+      const newIndex = prev.rows.findIndex(r => r.id === overId)
+      const rows = [...prev.rows]
+      rows.splice(newIndex, 0, rows.splice(oldIndex, 1)[0])
+      const next = { ...prev, rows }
+      saveTable(next).catch(console.error)
+      return next
+    })
+  }, [])
+
+  const reorderColumns = useCallback((activeId: string, overId: string) => {
+    setTable(prev => {
+      const oldIndex = prev.columns.findIndex(c => c.id === activeId)
+      const newIndex = prev.columns.findIndex(c => c.id === overId)
+      const columns = [...prev.columns]
+      columns.splice(newIndex, 0, columns.splice(oldIndex, 1)[0])
+      const next = { ...prev, columns }
+      saveTable(next).catch(console.error)
+      return next
+    })
+  }, [])
+
   const persistCells = useCallback(() => {
     saveTable(table).catch(console.error)
   }, [table])
 
-  return { table, loading, addRow, addColumn, deleteRow, deleteColumn, updateTicker, updatePrompt, updateCell, getCell, persistCells }
+  return { table, loading, addRow, addColumn, deleteRow, deleteColumn, updateTicker, updatePrompt, updateCell, getCell, persistCells, reorderRows, reorderColumns }
 }
