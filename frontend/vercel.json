@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/table", "destination": "https://stock-ticker-production-f6d0.up.railway.app/table" },
+    { "source": "/table/:path*", "destination": "https://stock-ticker-production-f6d0.up.railway.app/table/:path*" },
+    { "source": "/llm/:path*", "destination": "https://stock-ticker-production-f6d0.up.railway.app/llm/:path*" }
+  ]
+}
