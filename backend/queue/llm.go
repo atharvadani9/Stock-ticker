@@ -43,7 +43,7 @@ func Worker(ctx context.Context) {
 			return
 		case t := <-taskCh:
 			go func(t task) {
-				time.Sleep(2 * time.Second)
+				time.Sleep(3 * time.Second)
 				if rand.Float32() < 0.2 {
 					errMsg := "mock error: simulated LLM failure"
 					results.Store(t.id, models.TaskStatus{TaskID: t.id, Status: "error", Result: &errMsg})
