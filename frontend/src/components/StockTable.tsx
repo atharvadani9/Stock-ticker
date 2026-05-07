@@ -39,71 +39,6 @@ import { AiCell } from "./AiCell";
 import { ColumnHeader } from "./ColumnHeader";
 import { TickerCell } from "./TickerCell";
 
-function SortableRow({
-  row,
-  columns,
-  usedTickers,
-  updateTicker,
-  getCell,
-  deleteRow,
-  showDelete,
-}: {
-  row: Row;
-  columns: Column[];
-  usedTickers: Set<Ticker>;
-  updateTicker: (rowId: string, ticker: Ticker) => void;
-  getCell: (rowId: string, colId: string) => CellValue;
-  deleteRow: (rowId: string) => void;
-  showDelete: boolean;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: row.id });
-  return (
-    <TableRow
-      ref={setNodeRef}
-      sx={{ verticalAlign: "top", opacity: isDragging ? 0.5 : 1, transition }}
-      style={{ transform: CSS.Transform.toString(transform) }}
-    >
-      <TableCell sx={{ pt: 1.5, pr: 0, width: 24 }}>
-        <DragIndicatorIcon
-          fontSize="small"
-          sx={{ color: "text.disabled", cursor: "grab", mt: 0.5 }}
-          {...attributes}
-          {...listeners}
-        />
-      </TableCell>
-      <TableCell sx={{ pt: 1.5 }}>
-        <TickerCell
-          rowId={row.id}
-          ticker={row.ticker}
-          usedTickers={usedTickers}
-          onChange={updateTicker}
-        />
-      </TableCell>
-      {columns.map((col) => (
-        <TableCell key={col.id} sx={{ pt: 1.5 }}>
-          <AiCell cell={getCell(row.id, col.id)} />
-        </TableCell>
-      ))}
-      <TableCell padding="none" sx={{ pt: 1.5 }}>
-        {showDelete && (
-          <Tooltip title={"Remove"}>
-            <IconButton size="small" onClick={() => deleteRow(row.id)}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-      </TableCell>
-    </TableRow>
-  );
-}
-
 export function StockTable() {
   const {
     table,
@@ -116,7 +51,7 @@ export function StockTable() {
     updatePrompt,
     updateCell,
     getCell,
-    persistCells,
+    saveTable,
     reorderRows,
     reorderColumns,
   } = useTable();
@@ -134,7 +69,7 @@ export function StockTable() {
       rows: table.rows.map((r) => ({ ...r })),
       columns: table.columns.map((c) => ({ ...c })),
     };
-    persistCells();
+    saveTable();
     setIsRunning(false);
   };
 
@@ -305,5 +240,70 @@ function SortableColumnHeader({
         )}
       </Box>
     </TableCell>
+  );
+}
+
+function SortableRow({
+  row,
+  columns,
+  usedTickers,
+  updateTicker,
+  getCell,
+  deleteRow,
+  showDelete,
+}: {
+  row: Row;
+  columns: Column[];
+  usedTickers: Set<Ticker>;
+  updateTicker: (rowId: string, ticker: Ticker) => void;
+  getCell: (rowId: string, colId: string) => CellValue;
+  deleteRow: (rowId: string) => void;
+  showDelete: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: row.id });
+  return (
+    <TableRow
+      ref={setNodeRef}
+      sx={{ verticalAlign: "top", opacity: isDragging ? 0.5 : 1, transition }}
+      style={{ transform: CSS.Transform.toString(transform) }}
+    >
+      <TableCell sx={{ pt: 1.5, pr: 0, width: 24 }}>
+        <DragIndicatorIcon
+          fontSize="small"
+          sx={{ color: "text.disabled", cursor: "grab", mt: 0.5 }}
+          {...attributes}
+          {...listeners}
+        />
+      </TableCell>
+      <TableCell sx={{ pt: 1.5 }}>
+        <TickerCell
+          rowId={row.id}
+          ticker={row.ticker}
+          usedTickers={usedTickers}
+          onChange={updateTicker}
+        />
+      </TableCell>
+      {columns.map((col) => (
+        <TableCell key={col.id} sx={{ pt: 1.5 }}>
+          <AiCell cell={getCell(row.id, col.id)} />
+        </TableCell>
+      ))}
+      <TableCell padding="none" sx={{ pt: 1.5 }}>
+        {showDelete && (
+          <Tooltip title={"Remove"}>
+            <IconButton size="small" onClick={() => deleteRow(row.id)}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+      </TableCell>
+    </TableRow>
   );
 }

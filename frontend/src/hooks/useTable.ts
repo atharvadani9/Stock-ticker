@@ -1,115 +1,159 @@
-import { useState, useEffect, useCallback } from "react"
-import type { TableState, CellValue, Ticker } from "../types"
-import { TICKERS } from "../types"
-import { fetchTable, saveTable } from "../api"
+import { useCallback, useEffect, useState } from "react";
+import { fetchTableApi, saveTableApi } from "../api";
+import type { CellValue, TableState, Ticker } from "../types";
+import { TICKERS } from "../types";
 
-let _counter = 0
+let _counter = 0;
 function newId(prefix: string) {
-  return `${prefix}_${Date.now()}_${++_counter}`
+  return `${prefix}_${Date.now()}_${++_counter}`;
 }
 
 export function useTable() {
-  const [table, setTable] = useState<TableState>({ rows: [], columns: [], cells: {} })
-  const [loading, setLoading] = useState(true)
+  const [table, setTable] = useState<TableState>({
+    rows: [],
+    columns: [],
+    cells: {},
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTable()
-      .then(t => { setTable(t); setLoading(false) })
-      .catch(console.error)
-  }, [])
+    fetchTableApi()
+      .then((t) => {
+        setTable(t);
+        setLoading(false);
+      })
+      .catch(console.error);
+  }, []);
 
   const sync = useCallback((next: TableState) => {
-    setTable(next)
-    saveTable(next).catch(console.error)
-  }, [])
+    setTable(next);
+    saveTableApi(next).catch(console.error);
+  }, []);
 
   const addRow = useCallback(() => {
-    const used = new Set(table.rows.map(r => r.ticker))
-    const next = TICKERS.find(t => !used.has(t))
-    if (!next) return // all tickers already in use
+    const used = new Set(table.rows.map((r) => r.ticker));
+    const next = TICKERS.find((t) => !used.has(t));
+    if (!next) return; // all tickers already in use
     sync({
       ...table,
       rows: [...table.rows, { id: newId("row"), ticker: next }],
-    })
-  }, [table, sync])
+    });
+  }, [table, sync]);
 
   const addColumn = useCallback(() => {
     sync({
       ...table,
       columns: [...table.columns, { id: newId("col"), prompt: "" }],
-    })
-  }, [table, sync])
+    });
+  }, [table, sync]);
 
-  const updateTicker = useCallback((rowId: string, ticker: Ticker) => {
-    const used = new Set(table.rows.filter(r => r.id !== rowId).map(r => r.ticker))
-    if (used.has(ticker)) return // ticker already in another row
-    sync({
-      ...table,
-      rows: table.rows.map(r => r.id === rowId ? { ...r, ticker } : r),
-    })
-  }, [table, sync])
+  const updateTicker = useCallback(
+    (rowId: string, ticker: Ticker) => {
+      const used = new Set(
+        table.rows.filter((r) => r.id !== rowId).map((r) => r.ticker),
+      );
+      if (used.has(ticker)) return; // ticker already in another row
+      sync({
+        ...table,
+        rows: table.rows.map((r) => (r.id === rowId ? { ...r, ticker } : r)),
+      });
+    },
+    [table, sync],
+  );
 
   const updatePrompt = useCallback((colId: string, prompt: string) => {
-    setTable(prev => ({
+    setTable((prev) => ({
       ...prev,
-      columns: prev.columns.map(c => c.id === colId ? { ...c, prompt } : c),
-    }))
-  }, [])
+      columns: prev.columns.map((c) => (c.id === colId ? { ...c, prompt } : c)),
+    }));
+  }, []);
 
   // Local-only during a run — no PUT /table until run completes
-  const updateCell = useCallback((rowId: string, colId: string, patch: Partial<CellValue>) => {
-    setTable(prev => {
-      const key = `${rowId}:${colId}`
-      return {
-        ...prev,
-        cells: { ...prev.cells, [key]: { ...prev.cells[key], ...patch } },
-      }
-    })
-  }, [])
+  const updateCell = useCallback(
+    (rowId: string, colId: string, patch: Partial<CellValue>) => {
+      setTable((prev) => {
+        const key = `${rowId}:${colId}`;
+        return {
+          ...prev,
+          cells: { ...prev.cells, [key]: { ...prev.cells[key], ...patch } },
+        };
+      });
+    },
+    [],
+  );
 
-  const getCell = useCallback((rowId: string, colId: string): CellValue => {
-    return table.cells[`${rowId}:${colId}`] ?? { value: null, status: "idle" }
-  }, [table])
+  const getCell = useCallback(
+    (rowId: string, colId: string): CellValue => {
+      return (
+        table.cells[`${rowId}:${colId}`] ?? { value: null, status: "idle" }
+      );
+    },
+    [table],
+  );
 
-  const deleteRow = useCallback((rowId: string) => {
-    const cells = { ...table.cells }
-    table.columns.forEach(c => delete cells[`${rowId}:${c.id}`])
-    sync({ ...table, rows: table.rows.filter(r => r.id !== rowId), cells })
-  }, [table, sync])
+  const deleteRow = useCallback(
+    (rowId: string) => {
+      const cells = { ...table.cells };
+      table.columns.forEach((c) => delete cells[`${rowId}:${c.id}`]);
+      sync({ ...table, rows: table.rows.filter((r) => r.id !== rowId), cells });
+    },
+    [table, sync],
+  );
 
-  const deleteColumn = useCallback((colId: string) => {
-    const cells = { ...table.cells }
-    table.rows.forEach(r => delete cells[`${r.id}:${colId}`])
-    sync({ ...table, columns: table.columns.filter(c => c.id !== colId), cells })
-  }, [table, sync])
+  const deleteColumn = useCallback(
+    (colId: string) => {
+      const cells = { ...table.cells };
+      table.rows.forEach((r) => delete cells[`${r.id}:${colId}`]);
+      sync({
+        ...table,
+        columns: table.columns.filter((c) => c.id !== colId),
+        cells,
+      });
+    },
+    [table, sync],
+  );
 
   const reorderRows = useCallback((activeId: string, overId: string) => {
-    setTable(prev => {
-      const oldIndex = prev.rows.findIndex(r => r.id === activeId)
-      const newIndex = prev.rows.findIndex(r => r.id === overId)
-      const rows = [...prev.rows]
-      rows.splice(newIndex, 0, rows.splice(oldIndex, 1)[0])
-      const next = { ...prev, rows }
-      saveTable(next).catch(console.error)
-      return next
-    })
-  }, [])
+    setTable((prev) => {
+      const oldIndex = prev.rows.findIndex((r) => r.id === activeId);
+      const newIndex = prev.rows.findIndex((r) => r.id === overId);
+      const rows = [...prev.rows];
+      rows.splice(newIndex, 0, rows.splice(oldIndex, 1)[0]);
+      const next = { ...prev, rows };
+      saveTableApi(next).catch(console.error);
+      return next;
+    });
+  }, []);
 
   const reorderColumns = useCallback((activeId: string, overId: string) => {
-    setTable(prev => {
-      const oldIndex = prev.columns.findIndex(c => c.id === activeId)
-      const newIndex = prev.columns.findIndex(c => c.id === overId)
-      const columns = [...prev.columns]
-      columns.splice(newIndex, 0, columns.splice(oldIndex, 1)[0])
-      const next = { ...prev, columns }
-      saveTable(next).catch(console.error)
-      return next
-    })
-  }, [])
+    setTable((prev) => {
+      const oldIndex = prev.columns.findIndex((c) => c.id === activeId);
+      const newIndex = prev.columns.findIndex((c) => c.id === overId);
+      const columns = [...prev.columns];
+      columns.splice(newIndex, 0, columns.splice(oldIndex, 1)[0]);
+      const next = { ...prev, columns };
+      saveTableApi(next).catch(console.error);
+      return next;
+    });
+  }, []);
 
-  const persistCells = useCallback(() => {
-    saveTable(table).catch(console.error)
-  }, [table])
+  const saveTable = useCallback(() => {
+    saveTableApi(table).catch(console.error);
+  }, [table]);
 
-  return { table, loading, addRow, addColumn, deleteRow, deleteColumn, updateTicker, updatePrompt, updateCell, getCell, persistCells, reorderRows, reorderColumns }
+  return {
+    table,
+    loading,
+    addRow,
+    addColumn,
+    deleteRow,
+    deleteColumn,
+    updateTicker,
+    updatePrompt,
+    updateCell,
+    getCell,
+    saveTable,
+    reorderRows,
+    reorderColumns,
+  };
 }
