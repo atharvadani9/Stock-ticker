@@ -10,7 +10,7 @@ export function AiCell({ cell }: Props) {
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, py: 0.5 }}>
         <CircularProgress size={13} />
-        <Typography variant="body2" color="text.secondary">Generating…</Typography>
+        <Typography variant="body2" color="text.secondary">{"Generating…"}</Typography>
       </Box>
     )
   }
@@ -33,6 +33,6 @@ export function AiCell({ cell }: Props) {
 
   // idle
   return (
-    <Typography variant="body2" color="text.disabled" sx={{ px: 1 }}>—</Typography>
+    <Typography variant="body2" color="text.disabled" sx={{ px: 1 }}>{"—"}</Typography>
   )
 }

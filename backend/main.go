@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 
 	"github.com/atharvadani9/stock-ticker/backend/handlers"
 	"github.com/atharvadani9/stock-ticker/backend/queue"
@@ -16,9 +17,7 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOriginFunc: func(origin string) bool {
-			return origin == "http://localhost:5173" ||
-				len(origin) > 14 && origin[len(origin)-14:] == ".up.railway.app" ||
-				len(origin) > 11 && origin[len(origin)-11:] == ".vercel.app"
+			return origin == "http://localhost:5173" || strings.HasSuffix(origin, ".vercel.app")
 		},
 		AllowMethods: []string{"GET", "PUT", "POST"},
 		AllowHeaders: []string{"Content-Type"},

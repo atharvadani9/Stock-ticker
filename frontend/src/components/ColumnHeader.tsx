@@ -17,7 +17,7 @@ export function ColumnHeader({ column, onChange }: Props) {
         setDraft(e.target.value);
         onChange(column.id, e.target.value);
       }}
-      placeholder="e.g. What was revenue last year?"
+      placeholder={"e.g. What was revenue last year?"}
       size="small"
       multiline
       minRows={2}

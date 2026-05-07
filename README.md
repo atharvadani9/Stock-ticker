@@ -99,9 +99,9 @@ The backend LLM queue channel is buffered to 100. Tasks that arrive while the wo
 
 Each cell independently polls `/llm/async/poll/:task_id`. Poll intervals use exponential backoff — starting at 1s, doubling each miss, capping at 8s. This avoids hammering the backend during slow LLM calls while staying responsive for fast ones. Cells update as they resolve — fast tasks appear immediately without waiting for slow ones.
 
-### Automatic retry on LLM error
+### Error cells re-run on next Run
 
-If a task returns `"error"`, the cell silently re-submits a new LLM task and polls the fresh `task_id` — up to 3 retries. Only if all 4 attempts fail does the cell show an error. Each retry resets the backoff to 1s. This handles transient failures (rate limits, timeouts) that are common with real LLM APIs.
+If a cell returns an error, it shows the error message in red. Clicking **Run** again will re-run any cell that is in error state, along with any new or changed cells.
 
 ---
 
@@ -131,9 +131,9 @@ Streaming requires a persistent connection per cell. With an N×M table that mea
 
 A single worker processes tasks serially — 9 cells would take 27s (9×3s) instead of 3s. Spawning a goroutine per task lets all LLM calls run in parallel. Goroutines are cheap (~2KB each) so this is safe at demo scale. For production with a real API, a worker pool would cap concurrent calls to avoid rate limits.
 
-### Why exponential backoff + retry?
+### Why exponential backoff?
 
-They solve different problems. Backoff reduces wasted poll requests while waiting for a slow LLM response. Retry re-submits a fresh task when the LLM actually returns an error — re-polling the same `task_id` would just keep getting the same error. Together they make the system resilient to both latency and transient failures.
+Backoff reduces wasted poll requests while waiting for a slow LLM response — starting at 1s, doubling each miss, capping at 8s. This keeps the UI responsive for fast responses without hammering the backend during slow ones.
 
 ### Why min 1 row and 1 column?
 

@@ -3,7 +3,7 @@ import { submitLLM, pollTask } from "../api"
 
 const POLL_INITIAL_MS = 1000
 const POLL_MAX_MS = 8000
-const MAX_RETRIES = 3
+const POLL_TIMEOUT_MS = 120_000
 
 export interface RunSnapshot {
   rows: Row[]
@@ -31,13 +31,27 @@ function needsRun(
   return false
 }
 
-async function pollUntilDone(
-  taskId: string,
+async function submitAndPoll(
+  prompt: string,
   onResult: (value: string) => void,
   onError: (err: string) => void,
 ): Promise<void> {
+  let taskId: string
+  try {
+    const res = await submitLLM(prompt)
+    taskId = res.task_id
+  } catch (err) {
+    onError(String(err))
+    return
+  }
+
+  const deadline = Date.now() + POLL_TIMEOUT_MS
   let delay = POLL_INITIAL_MS
   while (true) {
+    if (Date.now() > deadline) {
+      onError("timed out waiting for LLM response")
+      return
+    }
     await new Promise(r => setTimeout(r, delay))
     try {
       const res = await pollTask(taskId)
@@ -48,30 +62,6 @@ async function pollUntilDone(
       return
     }
     delay = Math.min(delay * 2, POLL_MAX_MS)
-  }
-}
-
-async function submitAndPoll(
-  prompt: string,
-  onResult: (value: string) => void,
-  onError: (err: string) => void,
-): Promise<void> {
-  let retries = 0
-  while (true) {
-    let failed = false
-    let lastErr = ""
-    await submitLLM(prompt)
-      .then(({ task_id }) =>
-        pollUntilDone(task_id,
-          onResult,
-          err => { failed = true; lastErr = err },
-        )
-      )
-      .catch(err => { failed = true; lastErr = String(err) })
-
-    if (!failed) return
-    if (retries >= MAX_RETRIES) { onError(lastErr); return }
-    retries++
   }
 }
 
