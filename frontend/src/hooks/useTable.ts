@@ -32,11 +32,11 @@ export function useTable() {
 
   const addRow = useCallback(() => {
     const used = new Set(table.rows.map((r) => r.ticker));
-    const next = TICKERS.find((t) => !used.has(t));
-    if (!next) return; // all tickers already in use
+    const newTicker = TICKERS.find((t) => !used.has(t));
+    if (!newTicker) return; // all tickers already in use
     sync({
       ...table,
-      rows: [...table.rows, { id: newId("row"), ticker: next }],
+      rows: [...table.rows, { id: newId("row"), ticker: newTicker }],
     });
   }, [table, sync]);
 
@@ -95,7 +95,11 @@ export function useTable() {
     (rowId: string) => {
       const cells = { ...table.cells };
       table.columns.forEach((c) => delete cells[`${rowId}:${c.id}`]);
-      sync({ ...table, rows: table.rows.filter((r) => r.id !== rowId), cells });
+      sync({
+        ...table,
+        rows: table.rows.filter((r) => r.id !== rowId),
+        cells,
+      });
     },
     [table, sync],
   );

@@ -32,7 +32,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useRef, useState } from "react";
-import { runAllCells, type RunSnapshot } from "../hooks/usePolling";
+import { runAllCells, type RunSnapshot } from "../lib/runCells";
 import { useTable } from "../hooks/useTable";
 import type { CellValue, Column, Row, Ticker } from "../types";
 import { AiCell } from "./AiCell";
